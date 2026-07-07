@@ -57,6 +57,10 @@ def _apply_canonical_names(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = [_normalize_col(c) for c in df.columns]
     rename = {c: CANONICAL_MAP[c] for c in df.columns if c in CANONICAL_MAP}
     df = df.rename(columns=rename)
+    # Drop duplicate column names that arise when multiple source columns
+    # map to the same canonical name (e.g. 'Side' and 'Direction' -> 'side').
+    # Keep the first occurrence so downstream code always gets a Series.
+    df = df.loc[:, ~df.columns.duplicated(keep="first")]
     return df
 
 
