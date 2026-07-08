@@ -1,112 +1,63 @@
 # Trader Performance vs Bitcoin Market Sentiment
 
-Analysis of how Hyperliquid trader behaviour (PnL, leverage, win rate, position
-sizing) relates to Bitcoin Fear & Greed market sentiment. Built as a Primetrade.ai
-data science hiring assignment submission.
+[![Live App](https://img.shields.io/badge/Live-Streamlit_App-red)](https://trader-performance-vs-bitcoin-market-sentiment-hrafihztyftywnz.streamlit.app)
 
-## What's inside
+## Project Overview
+
+This project provides an in-depth data science analysis of how Hyperliquid trader behavior (including PnL, leverage, win rate, and position sizing) correlates with the Bitcoin Fear & Greed market sentiment index. 
+
+The goal of this project is to uncover actionable insights into whether market sentiment drives trader profitability and risk appetite, visualizing these relationships through an interactive data dashboard.
+
+You can view the interactive dashboard for this analysis here:
+**[Live Website / Streamlit App](https://trader-performance-vs-bitcoin-market-sentiment-hrafihztyftywnz.streamlit.app)**
+
+## Analysis Approach
+
+1. **Normalize & merge**: Datasets are cleaned into a fixed schema and joined on trade date to that day's Fear/Greed reading.
+2. **Sentiment buckets**: The 5-level classification (Extreme Fear → Extreme Greed) is analyzed for granular details, and also simplified to Fear / Greed / Neutral for cleaner grouped comparisons.
+3. **Core metrics per sentiment regime**: Evaluates total & average closed PnL, win rate, PnL distribution, average/median leverage, and trading volume.
+4. **Behavioral cuts**: Analyzes long vs short performance, per-symbol performance, and per-account performance, all split by sentiment.
+5. **Statistics**: Utilizes Welch's t-test on mean closed PnL (Fear days vs Greed days), plus a correlation matrix across PnL/leverage/size/price to test statistical significance.
+6. **Actionable Takeaways**: Surfaces insights directly in the dashboard's "Stats & Correlation" tab, providing immediate answers rather than raw data dumps.
+
+## Project Structure
 
 ```
 .
-├── app.py                      # Streamlit dashboard (main deliverable)
+├── app.py                      # Streamlit dashboard (Main application entry point)
 ├── src/
-│   ├── data_loader.py           # loads + normalizes both CSVs, merges on date
-│   ├── analysis.py               # all metrics: PnL by sentiment, win rate,
-│   │                              # leverage, t-test, correlations, top symbols
-│   └── visualization.py          # Plotly chart builders
+│   ├── data_loader.py           # Loads, normalizes, and merges CSV datasets
+│   ├── analysis.py               # Core analytics: PnL, win rate, leverage, t-tests
+│   └── visualization.py          # Plotly chart builders for interactive visuals
 ├── notebooks/
-│   └── eda_analysis.py           # offline/non-interactive version -> saves
-│                                  # a text report + HTML charts to outputs/
-├── data/                          # put your two CSVs here (git-ignored)
-├── outputs/                       # generated report + charts land here
-├── requirements.txt
-└── .gitignore
+│   └── eda_analysis.py           # Offline/non-interactive version for generating static reports
+├── data/                          # Directory for input CSVs (git-ignored)
+├── outputs/                       # Generated textual reports and HTML charts
+└── requirements.txt             # Python dependencies
 ```
 
-## 1. Get the data
+## Running Locally
 
-Download the two files from the assignment links and save them as:
+To run the dashboard on your local machine, follow these steps:
 
-- `data/fear_greed_index.csv` — columns: `Date`, `Classification`
-- `data/historical_data.csv` — Hyperliquid trades: `account`, `symbol`,
-  `execution price`, `size`, `side`, `time`, `start position`, `event`,
-  `closedPnL`, `leverage`, ...
-
-The loader auto-normalizes column name variants (spacing/casing/underscores),
-so slightly different headers from the export are fine.
-
-## 2. Run locally
+1. Clone the repository and navigate to the project folder.
+2. (Optional) Place your `fear_greed_index.csv` and `historical_data.csv` in the `data/` directory. Alternatively, you can use the web app's built-in file upload feature once it's running.
+3. Set up your virtual environment and install dependencies:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-
-# Interactive dashboard
-streamlit run app.py
-
-# OR the offline script (writes outputs/summary_report.txt + HTML charts)
-python notebooks/eda_analysis.py --fg data/fear_greed_index.csv --trades data/historical_data.csv
 ```
 
-The Streamlit app also lets you **upload** the two CSVs directly in the
-sidebar instead of relying on the `data/` folder — this is what you'd use
-once it's deployed publicly, since you generally don't want to commit
-someone's trading data to a public GitHub repo.
-
-## 3. Push to GitHub
+4. Run the interactive Streamlit dashboard:
 
 ```bash
-cd trader-sentiment-analysis     # or whatever you unzip this to
-git init
-git add .
-git commit -m "Trader performance vs market sentiment analysis"
-git branch -M main
-git remote add origin https://github.com/<your-username>/<repo-name>.git
-git push -u origin main
+streamlit run app.py
 ```
 
-## 4. Deploy
+*Alternatively, to run the offline script and generate a static HTML/text report in the `outputs/` folder:*
 
-### Streamlit Community Cloud (recommended, free, made for this)
-1. Go to https://share.streamlit.io and sign in with GitHub.
-2. **New app** → pick your repo/branch → main file path: `app.py` → **Deploy**.
-3. You get a public URL in a couple of minutes. Since the app has file
-   uploaders, you don't need to bundle any data in the repo at all.
-
-### Render / Railway (alternative, also supports long-running Python apps)
-Both can run a Streamlit app directly from a GitHub repo with a start
-command like `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`.
-
-### A note on Netlify
-Netlify is built for static sites and small serverless functions — it can't
-host a long-running Python/Streamlit process, so `app.py` won't run there
-as-is. If a static, no-backend deliverable is specifically required, the
-`notebooks/eda_analysis.py` script's HTML chart outputs (in `outputs/`) are
-plain static files and **can** be dropped into a Netlify site (e.g. as a
-simple `index.html` linking to each chart). For anything interactive
-(filters, live upload), Streamlit Cloud/Render is the right target.
-
-## Analysis approach
-
-1. **Normalize & merge** — both CSVs are cleaned into a fixed schema and
-   joined on trade date to that day's Fear/Greed reading.
-2. **Sentiment buckets** — the 5-level classification (Extreme Fear →
-   Extreme Greed) is kept as-is for detail, and simplified to
-   Fear / Greed / Neutral for cleaner grouped comparisons.
-3. **Core metrics per sentiment regime**: total & average closed PnL, win
-   rate, PnL distribution, average/median leverage, trading volume.
-4. **Behavioral cuts**: long vs short performance, per-symbol performance,
-   per-account performance, all split by sentiment.
-5. **Statistics**: Welch's t-test on mean closed PnL, Fear days vs Greed
-   days, plus a correlation matrix across PnL/leverage/size/price.
-6. **Takeaways** get surfaced directly in the dashboard's "Stats &
-   Correlation" tab (e.g. whether the Fear/Greed PnL gap is statistically
-   significant) rather than left for manual read-off.
-
-## Notes for the reviewer
-
-This repo is intentionally upload-first rather than shipping the raw
-trading data, since (a) it's often large, and (b) it may not be meant for a
-public repo. Everything needed to reproduce the analysis on the actual
-assignment CSVs is here — just add the two files and run.
+```bash
+python notebooks/eda_analysis.py --fg data/fear_greed_index.csv --trades data/historical_data.csv
+```
